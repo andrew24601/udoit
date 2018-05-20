@@ -1,0 +1,14 @@
+{
+  "name": "udoit",
+  "version": "0.0.1",
+  "description": "Tiny functional reactive state library",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc"
+  },
+  "author": "Andrew Barry",
+  "license": "ISC",
+  "devDependencies": {
+    "typescript": "^2.5.3"
+  }
+}
