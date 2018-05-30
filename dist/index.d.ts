@@ -1,6 +1,7 @@
-export declare class RedoContext {
+export declare class DoContext {
     runners: any[];
     do(fn: () => void): void;
+    value<T>(fn: () => T): (callback: (v: T) => void) => void;
     clear(): void;
 }
 export declare class ObservableArray<T> {

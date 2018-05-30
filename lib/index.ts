@@ -27,13 +27,23 @@ class Runner {
     }
 }
 
-export class RedoContext {
+export class DoContext {
     runners = [];
 
     do(fn:()=>void) {
         const r : Runner = new Runner(fn);
         this.runners.push(r);
         r.run();
+    }
+
+    value<T>(fn:()=>T):(callback:(v:T)=>void)=>void {
+        return (callback:(v:T)=>void)=>{
+            this.do(()=>{
+                const val = fn();
+                callback(val);
+            })
+            return 
+        }
     }
 
     clear() {

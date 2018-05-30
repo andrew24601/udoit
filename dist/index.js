@@ -1,21 +1,19 @@
-"use strict";
-Object.defineProperty(exports, "__esModule", { value: true });
-var Runner = /** @class */ (function () {
-    function Runner(fn) {
+class Runner {
+    constructor(fn) {
         this.id = getNextId();
         this.observed = {};
         this.fn = fn;
     }
-    Runner.prototype.unlink = function () {
-        var observed = this.observed;
-        for (var o in observed) {
+    unlink() {
+        const observed = this.observed;
+        for (const o in observed) {
             delete observed[o][this.id];
         }
         this.observed = {};
-    };
-    Runner.prototype.run = function () {
+    }
+    run() {
         this.unlink();
-        var previousRunner = currentRunner;
+        const previousRunner = currentRunner;
         try {
             currentRunner = this;
             this.fn();
@@ -23,115 +21,103 @@ var Runner = /** @class */ (function () {
         finally {
             currentRunner = previousRunner;
         }
-    };
-    return Runner;
-}());
-var RedoContext = /** @class */ (function () {
-    function RedoContext() {
+    }
+}
+export class DoContext {
+    constructor() {
         this.runners = [];
     }
-    RedoContext.prototype.do = function (fn) {
-        var r = new Runner(fn);
+    do(fn) {
+        const r = new Runner(fn);
         this.runners.push(r);
         r.run();
-    };
-    RedoContext.prototype.clear = function () {
-        for (var _i = 0, _a = this.runners; _i < _a.length; _i++) {
-            var r = _a[_i];
+    }
+    value(fn) {
+        return (callback) => {
+            this.do(() => {
+                const val = fn();
+                callback(val);
+            });
+            return;
+        };
+    }
+    clear() {
+        for (const r of this.runners) {
             r.unlink();
         }
         this.runners = [];
-    };
-    return RedoContext;
-}());
-exports.RedoContext = RedoContext;
-var currentRunner;
-var nextId = 0;
-var currentTransactionRunners = {};
-var currentTransactionDepth = 0;
+    }
+}
+let currentRunner;
+let nextId = 0;
+let currentTransactionRunners = {};
+let currentTransactionDepth = 0;
 function getNextId() {
     return (nextId++).toString(36);
 }
-var ObservableArray = /** @class */ (function () {
-    function ObservableArray() {
+export class ObservableArray {
+    constructor() {
         this.id = getNextId();
         this.values = [];
         this.runners = {};
     }
-    ObservableArray.prototype._r = function () {
+    _r() {
         if (currentRunner != null) {
             this.runners[currentRunner.id] = currentRunner;
             currentRunner.observed[this.id] = this.runners;
         }
-    };
-    ObservableArray.prototype._w = function () {
+    }
+    _w() {
         if (currentTransactionDepth == 0) {
             throw new Error("Modifying observable array outside of transaction");
         }
-        var runners = this.runners;
+        const runners = this.runners;
         if (runners != null) {
-            for (var r in runners) {
+            for (const r in runners) {
                 currentTransactionRunners[r] = runners[r];
             }
         }
-    };
-    Object.defineProperty(ObservableArray.prototype, "length", {
-        get: function () {
-            this._r();
-            return this.values.length;
-        },
-        enumerable: true,
-        configurable: true
-    });
-    ObservableArray.prototype.get = function (idx) {
+    }
+    get length() {
+        this._r();
+        return this.values.length;
+    }
+    get(idx) {
         this._r();
         return this.values[idx];
-    };
-    ObservableArray.prototype.set = function (idx, v) {
+    }
+    set(idx, v) {
         this._w();
         this.values[idx] = v;
-    };
-    ObservableArray.prototype.push = function () {
-        var values = [];
-        for (var _i = 0; _i < arguments.length; _i++) {
-            values[_i] = arguments[_i];
-        }
+    }
+    push(...values) {
         this._w();
-        for (var _a = 0, values_1 = values; _a < values_1.length; _a++) {
-            var v = values_1[_a];
+        for (const v of values) {
             this.values.push(v);
         }
-    };
-    ObservableArray.prototype.splice = function (start, deleteCount) {
-        if (deleteCount === void 0) { deleteCount = 0; }
-        var values = [];
-        for (var _i = 2; _i < arguments.length; _i++) {
-            values[_i - 2] = arguments[_i];
-        }
+    }
+    splice(start, deleteCount = 0, ...values) {
         this._w();
-        (_a = this.values).splice.apply(_a, [start, deleteCount].concat(values));
+        this.values.splice(start, deleteCount, ...values);
         return this;
-        var _a;
-    };
-    ObservableArray.prototype.indexOf = function (v, fromIndex) {
+    }
+    indexOf(v, fromIndex) {
         this._r();
         return this.values.indexOf(v, fromIndex);
-    };
-    ObservableArray.prototype.sort = function (compareFn) {
+    }
+    sort(compareFn) {
         this._w();
         this.values.sort(compareFn);
-    };
-    ObservableArray.prototype.slice = function (begin, end) {
+    }
+    slice(begin, end) {
         this._r();
         return this.values.splice(begin, end);
-    };
-    return ObservableArray;
-}());
-exports.ObservableArray = ObservableArray;
-function observable(target, propertyName) {
-    var backingProperty = "__v" + propertyName;
-    var backingRunners = "__r" + propertyName;
-    var backingId = "__i" + propertyName;
+    }
+}
+export function observable(target, propertyName) {
+    const backingProperty = "__v" + propertyName;
+    const backingRunners = "__r" + propertyName;
+    const backingId = "__i" + propertyName;
     Object.defineProperty(target, propertyName, {
         get: function () {
             if (currentRunner != null) {
@@ -152,17 +138,16 @@ function observable(target, propertyName) {
                 return;
             }
             this[backingProperty] = x;
-            var runners = this[backingRunners];
+            const runners = this[backingRunners];
             if (runners != null) {
-                for (var r in runners) {
+                for (const r in runners) {
                     currentTransactionRunners[r] = runners[r];
                 }
             }
         }
     });
 }
-exports.observable = observable;
-function doTransaction(fn) {
+export function doTransaction(fn) {
     try {
         currentTransactionDepth++;
         fn();
@@ -170,12 +155,11 @@ function doTransaction(fn) {
     finally {
         currentTransactionDepth--;
         if (currentTransactionDepth == 0) {
-            var runners = currentTransactionRunners;
+            const runners = currentTransactionRunners;
             currentTransactionRunners = {};
-            for (var r in runners) {
+            for (const r in runners) {
                 runners[r].run();
             }
         }
     }
 }
-exports.doTransaction = doTransaction;
