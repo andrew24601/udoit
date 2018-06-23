@@ -1,16 +1,19 @@
 {
   "name": "udoit",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "Tiny functional reactive state library",
   "main": "dist/index.js",
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsc"
+    "build": "node package.js",
+    "test": "mocha --reporter spec"
   },
   "author": "Andrew Barry",
   "license": "ISC",
   "devDependencies": {
+    "chai": "^4.1.2",
+    "mocha": "^5.2.0",
     "typescript": "^2.5.3"
   }
 }

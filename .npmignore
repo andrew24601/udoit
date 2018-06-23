@@ -1,1 +1,4 @@
 lib/
+package.js
+tsconfig.json
+tsconfigcjs.json

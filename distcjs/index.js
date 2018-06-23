@@ -1,3 +1,5 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
 class Runner {
     constructor(fn) {
         this.id = getNextId();
@@ -23,9 +25,10 @@ class Runner {
         }
     }
 }
-export class TransactionError extends Error {
+class TransactionError extends Error {
 }
-export class DoContext {
+exports.TransactionError = TransactionError;
+class DoContext {
     constructor() {
         this.runners = [];
     }
@@ -50,6 +53,7 @@ export class DoContext {
         this.runners = [];
     }
 }
+exports.DoContext = DoContext;
 let currentRunner;
 let nextId = 0;
 let currentTransactionRunners = {};
@@ -57,7 +61,7 @@ let currentTransactionDepth = 0;
 function getNextId() {
     return (nextId++).toString(36);
 }
-export class ObservableArray {
+class ObservableArray {
     constructor() {
         this.id = getNextId();
         this.values = [];
@@ -116,8 +120,9 @@ export class ObservableArray {
         return this.values.splice(begin, end);
     }
 }
+exports.ObservableArray = ObservableArray;
 let activeComputed = [];
-export function computed(target, propertyName, descriptor) {
+function computed(target, propertyName, descriptor) {
     const backingId = "__i" + propertyName;
     const backingRunners = "__r" + propertyName;
     const backingGet = descriptor.get;
@@ -145,7 +150,8 @@ export function computed(target, propertyName, descriptor) {
         return cachedValue;
     };
 }
-export function observable(target, propertyName) {
+exports.computed = computed;
+function observable(target, propertyName) {
     const backingProperty = "__v" + propertyName;
     const backingRunners = "__r" + propertyName;
     const backingId = "__i" + propertyName;
@@ -179,7 +185,8 @@ export function observable(target, propertyName) {
         }
     });
 }
-export function doTransaction(fn) {
+exports.observable = observable;
+function doTransaction(fn) {
     try {
         currentTransactionDepth++;
         fn();
@@ -199,3 +206,4 @@ export function doTransaction(fn) {
         }
     }
 }
+exports.doTransaction = doTransaction;

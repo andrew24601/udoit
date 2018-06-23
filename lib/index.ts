@@ -27,6 +27,9 @@ class Runner {
     }
 }
 
+export class TransactionError extends Error {
+}
+
 export class DoContext {
     runners = [];
 
@@ -78,7 +81,7 @@ export class ObservableArray<T> {
 
     _w() {
         if (currentTransactionDepth == 0) {
-            throw new Error("Modifying observable array outside of transaction")
+            throw new TransactionError("Modifying observable array outside of transaction")
         }
 
         const runners = this.runners;
@@ -133,10 +136,45 @@ export class ObservableArray<T> {
     }
 }
 
+let activeComputed = [];
+
+export function computed(target, propertyName, descriptor: PropertyDescriptor) {
+    const backingId = "__i" + propertyName;
+    const backingRunners = "__r" + propertyName;
+    const backingGet = descriptor.get;
+    let hasCachedValue = false;
+    let cachedValue = undefined;
+
+    descriptor.get = function() {
+        if (currentRunner != null) {
+            if (this[backingId] == null)
+                this[backingId] = getNextId();
+            if (this[backingRunners] == null)
+                this[backingRunners] = {};
+            this[backingRunners][currentRunner.id] = currentRunner;
+            currentRunner.observed[this[backingId]] = this[backingRunners];
+        }
+        
+        if (currentTransactionDepth == 0) {
+            if (hasCachedValue) {
+                return cachedValue;
+            }
+            activeComputed.push(()=>{
+                hasCachedValue = false;
+            });
+            hasCachedValue = true;
+        }
+        cachedValue = backingGet();
+        return cachedValue;
+    }
+}
+
 export function observable(target: any, propertyName: string) {
     const backingProperty = "__v" + propertyName;
     const backingRunners = "__r" + propertyName;
     const backingId = "__i" + propertyName;
+
+    target[backingProperty] = target[propertyName];
 
     Object.defineProperty(target, propertyName, {
         get: function() {
@@ -152,7 +190,7 @@ export function observable(target: any, propertyName: string) {
         },
         set: function(x) {
             if (currentTransactionDepth == 0) {
-                throw new Error("Writing to property '" + propertyName + "' outside of transaction")
+                throw new TransactionError("Writing to property '" + propertyName + "' outside of transaction")
             }
             if (x === this[backingProperty]) {
                 return;
@@ -176,6 +214,10 @@ export function doTransaction(fn: ()=>void) {
     } finally {
         currentTransactionDepth--;
         if (currentTransactionDepth == 0) {
+            for (const c of activeComputed) {
+                c();
+            }
+            activeComputed = [];
             const runners = currentTransactionRunners;
             currentTransactionRunners = {};
             for (const r in runners) {
