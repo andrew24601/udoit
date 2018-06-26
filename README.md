@@ -1,4 +1,5 @@
 [![Build Status](https://travis-ci.org/andrew24601/udoit.svg?branch=master)](https://travis-ci.org/andrew24601/udoit)
+[![Coverage Status](https://coveralls.io/repos/github/andrew24601/udoit/badge.svg)](https://coveralls.io/github/andrew24601/udoit)
 
 # udoit
 Tiny functional reactive state library
