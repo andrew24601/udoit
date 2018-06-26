@@ -7,13 +7,16 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "build": "node package.js",
-    "test": "mocha --reporter spec"
+    "test": "mocha --reporter spec",
+    "coverage": "nyc report --reporter=text-lcov | coveralls"
   },
   "author": "Andrew Barry",
   "license": "ISC",
   "devDependencies": {
     "chai": "^4.1.2",
+    "coveralls": "^3.0.1",
     "mocha": "^5.2.0",
+    "nyc": "^12.0.2",
     "typescript": "^2.5.3"
   }
 }

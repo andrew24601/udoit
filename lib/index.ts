@@ -85,10 +85,8 @@ export class ObservableArray<T> {
         }
 
         const runners = this.runners;
-        if (runners != null) {
-            for (const r in runners) {
-                currentTransactionRunners[r] = runners[r];
-            }
+        for (const r in runners) {
+            currentTransactionRunners[r] = runners[r];
         }
     }
 
@@ -134,6 +132,11 @@ export class ObservableArray<T> {
         this._r();
         return this.values.splice(begin, end);
     }
+
+    join(separator?: string) {
+        this._r();
+        return this.values.join(separator);
+    }
 }
 
 let activeComputed = [];
@@ -141,10 +144,17 @@ let activeComputed = [];
 export function computed(target, propertyName, descriptor: PropertyDescriptor) {
     const backingId = "__i" + propertyName;
     const backingRunners = "__r" + propertyName;
+    let writeBack = false;
+
+    if (descriptor == null) {
+        descriptor = Object.getOwnPropertyDescriptor(target, propertyName);
+        writeBack = true;
+    }
+
     const backingGet = descriptor.get;
     let hasCachedValue = false;
     let cachedValue = undefined;
-
+    
     descriptor.get = function() {
         if (currentRunner != null) {
             if (this[backingId] == null)
@@ -164,8 +174,12 @@ export function computed(target, propertyName, descriptor: PropertyDescriptor) {
             });
             hasCachedValue = true;
         }
-        cachedValue = backingGet();
+        cachedValue = backingGet.apply(this);
         return cachedValue;
+    }
+
+    if (writeBack) {
+        Object.defineProperty(target, propertyName, descriptor);
     }
 }
 

@@ -20,6 +20,7 @@ export declare class ObservableArray<T> {
     indexOf(v: T, fromIndex?: number): number;
     sort(compareFn?: (a: T, b: T) => number): void;
     slice(begin?: number, end?: number): T[];
+    join(separator?: string): string;
 }
 export declare function computed(target: any, propertyName: any, descriptor: PropertyDescriptor): void;
 export declare function observable(target: any, propertyName: string): void;

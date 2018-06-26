@@ -74,10 +74,8 @@ export class ObservableArray {
             throw new TransactionError("Modifying observable array outside of transaction");
         }
         const runners = this.runners;
-        if (runners != null) {
-            for (const r in runners) {
-                currentTransactionRunners[r] = runners[r];
-            }
+        for (const r in runners) {
+            currentTransactionRunners[r] = runners[r];
         }
     }
     get length() {
@@ -115,11 +113,20 @@ export class ObservableArray {
         this._r();
         return this.values.splice(begin, end);
     }
+    join(separator) {
+        this._r();
+        return this.values.join(separator);
+    }
 }
 let activeComputed = [];
 export function computed(target, propertyName, descriptor) {
     const backingId = "__i" + propertyName;
     const backingRunners = "__r" + propertyName;
+    let writeBack = false;
+    if (descriptor == null) {
+        descriptor = Object.getOwnPropertyDescriptor(target, propertyName);
+        writeBack = true;
+    }
     const backingGet = descriptor.get;
     let hasCachedValue = false;
     let cachedValue = undefined;
@@ -141,9 +148,12 @@ export function computed(target, propertyName, descriptor) {
             });
             hasCachedValue = true;
         }
-        cachedValue = backingGet();
+        cachedValue = backingGet.apply(this);
         return cachedValue;
     };
+    if (writeBack) {
+        Object.defineProperty(target, propertyName, descriptor);
+    }
 }
 export function observable(target, propertyName) {
     const backingProperty = "__v" + propertyName;
