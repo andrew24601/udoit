@@ -13,9 +13,11 @@ function makeSimpleModel() {
 
 function makeComputedModel() {
     const model = {
+        _computeCount: 0,
         firstName: "First",
         lastName: "Last",
         get fullName() {
+            this._computeCount++;
             return this.firstName + " " + this.lastName;
         }
     }
@@ -213,6 +215,36 @@ describe('Simple DoContext test', ()=>{
         });
 
         callback.expectComplete();
+    }),
+    it("using do should stop updating if context is cleared", () => {
+        const model = makeSimpleModel();
+        const ctx = new DoContext();
+
+        const callback = new ExpectedSequence(["First Last", "Bob Last", "Bob Surname"]);
+
+        ctx.do(()=>{
+            callback.receive(model.firstName + " " + model.lastName);
+        });
+
+        doTransaction(()=>{
+            model.firstName = "Bob";
+        });
+
+        doTransaction(()=>{
+            model.lastName = "Surname";
+        });
+
+        ctx.clear();
+
+        doTransaction(()=>{
+            model.firstName = "Mary";
+        });
+
+        doTransaction(()=>{
+            model.lastName = "Jane";
+        });
+
+        callback.expectComplete();
     })
 });
 
@@ -235,6 +267,22 @@ describe('DoContext do computed test', ()=>{
         });
 
         callback.expectComplete();
+    }),
+    it("computed values should cache outside transactions", ()=>{
+        const model = makeComputedModel();
+        expect(model.fullName).to.equal("First Last");
+        expect(model.fullName).to.equal("First Last");
+        expect(model.fullName).to.equal("First Last");
+        expect(model._computeCount).to.equal(1);
+    }),
+    it("computed values should not be cached inside transactions", ()=>{
+        const model = makeComputedModel();
+        doTransaction(()=>{
+            expect(model.fullName).to.equal("First Last");
+            expect(model.fullName).to.equal("First Last");
+            expect(model.fullName).to.equal("First Last");
+        });
+        expect(model._computeCount).to.equal(3);
     })
 });
 
@@ -345,5 +393,50 @@ describe('DoContext ObservableArray test', ()=>{
             arr.splice(0, arr.length);
         });
         callback.expectComplete();
+    }),
+    it("sorting elements", ()=>{
+        const ctx = new DoContext();
+        const callback = new ExpectedSequence(["", "3,2,1", "1,2,3"]);
+        const arr = new ObservableArray();
+
+        ctx.do(()=>{
+            callback.receive(arr.join(","));
+        });
+
+        doTransaction(()=>{
+            arr.push(3);
+            arr.push(2);
+            arr.push(1);
+        });
+
+        doTransaction(()=>{
+            arr.sort();
+        });
+        callback.expectComplete();
+    }),
+    it("slicing elements", ()=>{
+        const ctx = new DoContext();
+        const callback = new ExpectedSequence(["", "3,2,1", "1,2,3"]);
+        const arr = new ObservableArray();
+
+        ctx.do(()=>{
+            callback.receive(arr.join(","));
+        });
+
+        doTransaction(()=>{
+            arr.push(3);
+            arr.push(2);
+            arr.push(1);
+        });
+
+        expect(arr.slice(0, 2).join(",")).to.equal("3,2");
+
+        doTransaction(()=>{
+            arr.sort();
+        });
+
+        expect(arr.slice(0, 2).join(",")).to.equal("1,2");
+        callback.expectComplete();
     })
+
 });

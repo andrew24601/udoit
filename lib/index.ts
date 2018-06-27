@@ -130,7 +130,7 @@ export class ObservableArray<T> {
 
     slice(begin?: number, end?: number) {
         this._r();
-        return this.values.splice(begin, end);
+        return this.values.slice(begin, end);
     }
 
     join(separator?: string) {

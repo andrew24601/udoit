@@ -115,7 +115,7 @@ class ObservableArray {
     }
     slice(begin, end) {
         this._r();
-        return this.values.splice(begin, end);
+        return this.values.slice(begin, end);
     }
     join(separator) {
         this._r();
