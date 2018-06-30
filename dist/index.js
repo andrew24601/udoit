@@ -117,6 +117,9 @@ export class ObservableArray {
         this._r();
         return this.values.join(separator);
     }
+    toJSON() {
+        return this.values;
+    }
 }
 let activeComputed = [];
 export function computed(target, propertyName, descriptor) {
@@ -159,6 +162,18 @@ export function observable(target, propertyName) {
     const backingProperty = "__v" + propertyName;
     const backingRunners = "__r" + propertyName;
     const backingId = "__i" + propertyName;
+    Object.defineProperty(target, backingProperty, {
+        enumerable: false,
+        writable: true
+    });
+    Object.defineProperty(target, backingRunners, {
+        enumerable: false,
+        writable: true
+    });
+    Object.defineProperty(target, backingId, {
+        enumerable: false,
+        writable: true
+    });
     target[backingProperty] = target[propertyName];
     Object.defineProperty(target, propertyName, {
         get: function () {
