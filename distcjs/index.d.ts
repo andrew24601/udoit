@@ -16,7 +16,7 @@ export declare class ObservableArray<T> {
     get(idx: number): T;
     set(idx: number, v: T): void;
     push(...values: T[]): void;
-    splice(start: number, deleteCount?: number, ...values: T[]): this;
+    splice(start: number, deleteCount: number, ...values: T[]): this;
     indexOf(v: T, fromIndex?: number): number;
     sort(compareFn?: (a: T, b: T) => number): void;
     slice(begin?: number, end?: number): T[];

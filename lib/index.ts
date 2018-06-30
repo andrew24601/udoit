@@ -112,7 +112,7 @@ export class ObservableArray<T> {
         }
     }
 
-    splice(start: number, deleteCount: number = 0, ...values: T[]) {
+    splice(start: number, deleteCount: number, ...values: T[]) {
         this._w();
         this.values.splice(start, deleteCount, ...values);
         return this;

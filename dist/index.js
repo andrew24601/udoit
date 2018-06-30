@@ -96,7 +96,7 @@ export class ObservableArray {
             this.values.push(v);
         }
     }
-    splice(start, deleteCount = 0, ...values) {
+    splice(start, deleteCount, ...values) {
         this._w();
         this.values.splice(start, deleteCount, ...values);
         return this;

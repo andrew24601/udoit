@@ -13,6 +13,8 @@
   "author": "Andrew Barry",
   "license": "ISC",
   "devDependencies": {
+    "@types/chai": "^4.1.4",
+    "@types/mocha": "^5.2.3",
     "chai": "^4.1.2",
     "coveralls": "^3.0.1",
     "mocha": "^5.2.0",

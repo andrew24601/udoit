@@ -305,6 +305,28 @@ describe('DoContext value computed test', ()=>{
         });
 
         callback.expectComplete();
+    }),
+    it("computed should update (nested transaction)", ()=>{
+        const ctx = new DoContext();
+        const callback = new ExpectedSequence(["First Last", "Mary Jones", "Bob Jones"]);
+        const model = makeComputedModel();
+
+        const valuable = ctx.value(()=>model.fullName);
+
+        valuable((v)=>callback.receive(v));
+
+        doTransaction(()=>{
+            model.firstName = "Mary";
+            doTransaction(()=>{
+                model.lastName = "Jones";
+            });
+        });
+
+        doTransaction(()=>{
+            model.firstName = "Bob";
+        });
+
+        callback.expectComplete();
     })
 });
 

@@ -4,6 +4,8 @@
     "module": "es6",
     "declaration": true,
     "outDir": "./dist",
-    "experimentalDecorators": true
-  }
+    "experimentalDecorators": true,
+    "moduleResolution": "node"
+  },
+  "files": ["lib/index.ts"]
 }
