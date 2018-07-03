@@ -1,6 +1,6 @@
 {
   "name": "udoit",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "description": "Tiny functional reactive state library",
   "main": "dist/index.js",
   "module": "dist/index.js",
