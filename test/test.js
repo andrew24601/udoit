@@ -1,4 +1,4 @@
-const { DoContext, observable, computed, TransactionError, doTransaction, ObservableArray } = require('../distcjs/index');
+const { DoContext, observable, computed, TransactionError, doTransaction, ObservableArray, SimpleEventEmitter } = require('../distcjs/index');
 const { expect } = require('chai');
 
 function makeSimpleModel() {
@@ -332,6 +332,20 @@ describe('DoContext value computed test', ()=>{
     })
 });
 
+describe('EventEmitter test', ()=>{
+    it("emit with no listeners", ()=>{
+        const em = new SimpleEventEmitter();
+        em.emit("hello");
+    }),
+    it("add multiple listeneres", ()=>{
+        const em = new SimpleEventEmitter();
+        let updateCount = 0;
+        em.on('update', ()=>updateCount++);
+        em.on('update', ()=>updateCount++);
+        em.emit('update');
+        expect(updateCount).to.equal(2);
+    })
+})
 
 describe('DoContext ObservableArray test', ()=>{
     it("do should track array length", ()=>{
