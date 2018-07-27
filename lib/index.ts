@@ -30,6 +30,46 @@ class Runner {
 export class TransactionError extends Error {
 }
 
+export class SimpleEventEmitter {
+    _listeners
+
+    constructor() {
+        this._listeners = {};
+    }
+    on(name, callback) {
+        let listeners = this._listeners[name];
+        if (listeners == null) {
+            listeners = this._listeners[name] = [];
+        }
+        listeners.push(callback);
+    }
+    emit(eventName, ...args) {
+        const listeners = this._listeners[eventName];
+        if (listeners == null) return;
+        for (const listener of listeners) {
+            listener.apply(this, args);
+        }
+    }
+}
+
+export class Value<T> extends SimpleEventEmitter {
+    _value : T;
+
+    constructor(v: T) {
+        super();
+        this._value = v;
+    }
+
+    value() {
+        return this._value;
+    }
+
+    update(v) {
+        this._value = v;
+        this.emit('update', v);
+    }
+}
+
 export class DoContext {
     runners = [];
 
@@ -39,14 +79,17 @@ export class DoContext {
         r.run();
     }
 
-    value<T>(fn:()=>T):(callback:(v:T)=>void)=>void {
-        return (callback:(v:T)=>void)=>{
-            this.do(()=>{
-                const val = fn();
-                callback(val);
-            })
-            return 
-        }
+    value<T>(fn:()=>T):Value<T> {
+        let result;
+        this.do(()=>{
+            const val = fn();
+            if (result === undefined) {
+                result = new Value<T>(val);
+            } else {
+                result.update(val);
+            }
+        });
+        return result;
     }
 
     clear() {

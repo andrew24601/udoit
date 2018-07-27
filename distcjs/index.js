@@ -28,6 +28,41 @@ class Runner {
 class TransactionError extends Error {
 }
 exports.TransactionError = TransactionError;
+class SimpleEventEmitter {
+    constructor() {
+        this._listeners = {};
+    }
+    on(name, callback) {
+        let listeners = this._listeners[name];
+        if (listeners == null) {
+            listeners = this._listeners[name] = [];
+        }
+        listeners.push(callback);
+    }
+    emit(eventName, ...args) {
+        const listeners = this._listeners[eventName];
+        if (listeners == null)
+            return;
+        for (const listener of listeners) {
+            listener.apply(this, args);
+        }
+    }
+}
+exports.SimpleEventEmitter = SimpleEventEmitter;
+class Value extends SimpleEventEmitter {
+    constructor(v) {
+        super();
+        this._value = v;
+    }
+    value() {
+        return this._value;
+    }
+    update(v) {
+        this._value = v;
+        this.emit('update', v);
+    }
+}
+exports.Value = Value;
 class DoContext {
     constructor() {
         this.runners = [];
@@ -38,13 +73,17 @@ class DoContext {
         r.run();
     }
     value(fn) {
-        return (callback) => {
-            this.do(() => {
-                const val = fn();
-                callback(val);
-            });
-            return;
-        };
+        let result;
+        this.do(() => {
+            const val = fn();
+            if (result === undefined) {
+                result = new Value(val);
+            }
+            else {
+                result.update(val);
+            }
+        });
+        return result;
     }
     clear() {
         for (const r of this.runners) {

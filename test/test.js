@@ -292,9 +292,10 @@ describe('DoContext value computed test', ()=>{
         const callback = new ExpectedSequence(["First Last", "Mary Last", "Bob Last"]);
         const model = makeComputedModel();
 
-        const valuable = ctx.value(()=>model.fullName);
+        const value = ctx.value(()=>model.fullName);
 
-        valuable((v)=>callback.receive(v));
+        callback.receive(value.value());
+        value.on("update", (v)=>callback.receive(v));
 
         doTransaction(()=>{
             model.firstName = "Mary";
@@ -313,7 +314,8 @@ describe('DoContext value computed test', ()=>{
 
         const valuable = ctx.value(()=>model.fullName);
 
-        valuable((v)=>callback.receive(v));
+        callback.receive(valuable.value());
+        valuable.on("update", (v)=>callback.receive(v));
 
         doTransaction(()=>{
             model.firstName = "Mary";

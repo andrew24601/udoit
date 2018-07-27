@@ -1,9 +1,21 @@
 export declare class TransactionError extends Error {
 }
+export declare class SimpleEventEmitter {
+    _listeners: any;
+    constructor();
+    on(name: any, callback: any): void;
+    emit(eventName: any, ...args: any[]): void;
+}
+export declare class Value<T> extends SimpleEventEmitter {
+    _value: T;
+    constructor(v: T);
+    value(): T;
+    update(v: any): void;
+}
 export declare class DoContext {
     runners: any[];
     do(fn: () => void): void;
-    value<T>(fn: () => T): (callback: (v: T) => void) => void;
+    value<T>(fn: () => T): Value<T>;
     clear(): void;
 }
 export declare class ObservableArray<T> {
