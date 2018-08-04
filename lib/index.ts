@@ -71,11 +71,11 @@ export class Value<T> extends SimpleEventEmitter {
 }
 
 export class DoContext {
-    runners = [];
+    _runners = [];
 
     do(fn:()=>void) {
         const r : Runner = new Runner(fn);
-        this.runners.push(r);
+        this._runners.push(r);
         r.run();
     }
 
@@ -93,10 +93,10 @@ export class DoContext {
     }
 
     clear() {
-        for (const r of this.runners) {
+        for (const r of this._runners) {
             r.unlink();
         }
-        this.runners = [];
+        this._runners = [];
     }
 }
 
@@ -191,6 +191,7 @@ let activeComputed = [];
 export function computed(target, propertyName, descriptor: PropertyDescriptor) {
     const backingId = "__i" + propertyName;
     const backingRunners = "__r" + propertyName;
+    const backingCache = "__c" + propertyName;
     let writeBack = false;
 
     if (descriptor == null) {
@@ -199,8 +200,6 @@ export function computed(target, propertyName, descriptor: PropertyDescriptor) {
     }
 
     const backingGet = descriptor.get;
-    let hasCachedValue = false;
-    let cachedValue = undefined;
     
     descriptor.get = function() {
         if (currentRunner != null) {
@@ -213,16 +212,15 @@ export function computed(target, propertyName, descriptor: PropertyDescriptor) {
         }
         
         if (currentTransactionDepth == 0) {
-            if (hasCachedValue) {
-                return cachedValue;
+            if (this.hasOwnProperty(backingCache)) {
+                return this[backingCache];
             }
             activeComputed.push(()=>{
-                hasCachedValue = false;
+                delete this[backingCache];
             });
-            hasCachedValue = true;
         }
-        cachedValue = backingGet.apply(this);
-        return cachedValue;
+        this[backingCache] = backingGet.apply(this);
+        return this[backingCache];
     }
 
     if (writeBack) {

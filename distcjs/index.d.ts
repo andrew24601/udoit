@@ -13,7 +13,7 @@ export declare class Value<T> extends SimpleEventEmitter {
     update(v: any): void;
 }
 export declare class DoContext {
-    runners: any[];
+    _runners: any[];
     do(fn: () => void): void;
     value<T>(fn: () => T): Value<T>;
     clear(): void;

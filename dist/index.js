@@ -60,11 +60,11 @@ export class Value extends SimpleEventEmitter {
 }
 export class DoContext {
     constructor() {
-        this.runners = [];
+        this._runners = [];
     }
     do(fn) {
         const r = new Runner(fn);
-        this.runners.push(r);
+        this._runners.push(r);
         r.run();
     }
     value(fn) {
@@ -81,10 +81,10 @@ export class DoContext {
         return result;
     }
     clear() {
-        for (const r of this.runners) {
+        for (const r of this._runners) {
             r.unlink();
         }
-        this.runners = [];
+        this._runners = [];
     }
 }
 let currentRunner;
@@ -162,14 +162,13 @@ let activeComputed = [];
 export function computed(target, propertyName, descriptor) {
     const backingId = "__i" + propertyName;
     const backingRunners = "__r" + propertyName;
+    const backingCache = "__c" + propertyName;
     let writeBack = false;
     if (descriptor == null) {
         descriptor = Object.getOwnPropertyDescriptor(target, propertyName);
         writeBack = true;
     }
     const backingGet = descriptor.get;
-    let hasCachedValue = false;
-    let cachedValue = undefined;
     descriptor.get = function () {
         if (currentRunner != null) {
             if (this[backingId] == null)
@@ -180,16 +179,15 @@ export function computed(target, propertyName, descriptor) {
             currentRunner.observed[this[backingId]] = this[backingRunners];
         }
         if (currentTransactionDepth == 0) {
-            if (hasCachedValue) {
-                return cachedValue;
+            if (this.hasOwnProperty(backingCache)) {
+                return this[backingCache];
             }
             activeComputed.push(() => {
-                hasCachedValue = false;
+                delete this[backingCache];
             });
-            hasCachedValue = true;
         }
-        cachedValue = backingGet.apply(this);
-        return cachedValue;
+        this[backingCache] = backingGet.apply(this);
+        return this[backingCache];
     };
     if (writeBack) {
         Object.defineProperty(target, propertyName, descriptor);
