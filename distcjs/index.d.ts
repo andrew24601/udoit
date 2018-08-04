@@ -35,6 +35,5 @@ export declare class ObservableArray<T> {
     join(separator?: string): string;
     toJSON(): T[];
 }
-export declare function computed(target: any, propertyName: any, descriptor: PropertyDescriptor): void;
 export declare function observable(target: any, propertyName: string): void;
 export declare function doTransaction(fn: () => void): void;

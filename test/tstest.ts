@@ -1,4 +1,4 @@
-import { DoContext, observable, computed, TransactionError, doTransaction, ObservableArray } from '../distcjs/index';
+import { DoContext, observable, TransactionError, doTransaction, ObservableArray } from '../distcjs/index';
 import { expect } from 'chai';
 import 'mocha';
 
@@ -18,7 +18,6 @@ class ComputedModel {
     @observable
     lastName = "Last"
 
-    @computed
     get fullName() {
         this._computeCount++;
         return this.firstName + " " + this.lastName;

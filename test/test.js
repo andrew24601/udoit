@@ -23,7 +23,6 @@ function makeComputedModel() {
     }
     observable(model, "firstName");
     observable(model, "lastName");
-    computed(model, "fullName");
 
     return model;
 }
@@ -245,44 +244,6 @@ describe('Simple DoContext test', ()=>{
         });
 
         callback.expectComplete();
-    })
-});
-
-describe('DoContext do computed test', ()=>{
-    it("computed should update", ()=>{
-        const ctx = new DoContext();
-        const callback = new ExpectedSequence(["First Last", "Mary Last", "Bob Last"]);
-        const model = makeComputedModel();
-
-        ctx.do(()=>{
-            callback.receive(model.fullName);
-        });
-
-        doTransaction(()=>{
-            model.firstName = "Mary";
-        });
-
-        doTransaction(()=>{
-            model.firstName = "Bob";
-        });
-
-        callback.expectComplete();
-    }),
-    it("computed values should cache outside transactions", ()=>{
-        const model = makeComputedModel();
-        expect(model.fullName).to.equal("First Last");
-        expect(model.fullName).to.equal("First Last");
-        expect(model.fullName).to.equal("First Last");
-        expect(model._computeCount).to.equal(1);
-    }),
-    it("computed values should not be cached inside transactions", ()=>{
-        const model = makeComputedModel();
-        doTransaction(()=>{
-            expect(model.fullName).to.equal("First Last");
-            expect(model.fullName).to.equal("First Last");
-            expect(model.fullName).to.equal("First Last");
-        });
-        expect(model._computeCount).to.equal(3);
     })
 });
 

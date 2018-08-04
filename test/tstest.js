@@ -38,9 +38,6 @@ __decorate([
 __decorate([
     index_1.observable
 ], ComputedModel.prototype, "lastName", void 0);
-__decorate([
-    index_1.computed
-], ComputedModel.prototype, "fullName", null);
 function makeSimpledModel() {
     let model;
     index_1.doTransaction(() => {
